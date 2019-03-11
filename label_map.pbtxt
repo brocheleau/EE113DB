@@ -1,0 +1,49 @@
+item {
+	id: 1
+	name: 'Apple'
+}
+
+item {
+	id: 2
+	name: 'Bagel'
+}
+
+item {
+	id: 3
+	name: 'Banana'
+}
+
+item {
+	id: 4
+	name: 'Keyboard'
+}
+
+item {
+	id: 5
+	name: 'Comp. Mouse'
+}
+
+item {
+	id: 6
+	name: 'Mug'
+}
+
+item {
+	id: 7
+	name: 'Laptop'
+}
+
+item {
+	id: 8
+	name: 'Person'
+}
+
+item {
+	id: 9
+	name: 'Ruler'
+}
+
+item {
+	id: 10
+	name: 'Sunglasses'
+}
