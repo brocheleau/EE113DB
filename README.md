@@ -19,8 +19,9 @@ Project Description:
 
 Example: 
 
-./autoFocus --aliasName  --config=/Users/juliaschell/EE113DB/ssd_mobilenet_v2_coco/ssd_mobilenet_v2_coco.pbtxt --model=/Users/juliaschell/EE113DB/ssd_mobilenet_v2_coco/frozen_inference_graph.pb
+./autoFocus --aliasName  --input=dorm.jpg --config=/Users/juliaschell/EE113DB/ssd_mobilenet_v2_coco/ssd_mobilenet_v2_coco.pbtxt --model=/Users/juliaschell/EE113DB/ssd_mobilenet_v2_coco/frozen_inference_graph.pb
+
 
 To compile: 
-clang++ $(pkg-config --cflags --libs /usr/local/Cellar/opencv/4.0.1/lib/pkgconfig/opencv4.pc) -Iinclude -std=c++11 autoFocus.cpp -o autoFocus
+clang++ $(pkg-config --cflags --libs /usr/local/Cellar/opencv/4.0.1/lib/pkgconfig/opencv4.pc) -Iinclude -std=c++11 autoFocus.cpp objDetection.cpp -o autoFocus
 
