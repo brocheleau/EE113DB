@@ -19,7 +19,21 @@ Project Description:
 
 Example: 
 
-./autoFocus --aliasName  --input=sample_images/dorm.jpg --config=/Users/juliaschell/EE113DB/ssd_mobilenet_v2_coco/ssd_mobilenet_v2_coco.pbtxt --model=/Users/juliaschell/EE113DB/ssd_mobilenet_v2_coco/frozen_inference_graph.pb
+To use the pre-trained model (definitely working):
+./autoFocus \
+--aliasName  \
+--input=sample_images/desk.jpg \
+--config=trained_model.pb/ssd_mobilenet_v2_coco/ssd_mobilenet_v2_coco.pbtxt \
+--model=trained_model.pb/ssd_mobilenet_v2_coco/frozen_inference_graph.pb
+
+To use my model (not currently working):
+./autoFocus \
+--aliasName  \
+--input=sample_images/desk.jpg \
+--config=trained_model.pb/gsc_v1/ssd_mobilenet_v2_coco.pbtxt \
+--model=trained_model.pb/gsc_v1/frozen_inference_graph.pb
+
+WOO I FOUND SOMETHING ELSE THAT WORKS
 
 
 To compile: 
