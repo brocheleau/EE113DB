@@ -37,9 +37,7 @@ void applyBoxBlur(Mat& input, const int MAX_KERNEL_LENGTH, int target_x, int tar
     for( int y = 0; y < input.rows; y++ ) {
         for( int x = 0; x < input.cols; x++ ) {
             for( int c = 0; c < input.channels(); c++ ) {
-                if (y > target_y && x > target_x && y < (target_height + target_y) && x < (target_length + target_x)) {
-                    input.at<Vec3b>(y,x)[c] = saturate_cast<uchar>( input.at<Vec3b>(y,x)[c] );
-                }
+                if (y > target_y && x > target_x && y < (target_height + target_y) && x < (target_length + target_x)) { continue; }
                 input.at<Vec3b>(y,x)[c] = saturate_cast<uchar>( (input.at<Vec3b>(y,x)[c] + dst.at<Vec3b>(y,x)[c]) / 2);
             }
         }

@@ -19,6 +19,7 @@
 
 #include "common.hpp"
 #include "objDetection.hpp"
+#include "imgproc.hpp"
 
 std::string keys =
 "{ help  h     | | Print help message. }"
@@ -137,6 +138,19 @@ int main(int argc, char** argv)
         net.forward(outs, outNames);
 
         detections results = postprocess(frame, outs, net);
+        
+        // intensity histogram equalization
+        equalizeIntensity(frame);
+        
+        // check if desired object is in image
+        
+        // run blur excluding detected object
+        
+        // else, run blur excluding all detected objects
+        
+        // possibly: apply linear contrast
+        
+        // possibly: depth mapping
 
         // Put efficiency information.
         vector<double> layersTimes;
