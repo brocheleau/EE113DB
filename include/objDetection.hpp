@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
@@ -15,11 +16,11 @@ using namespace cv;
 using namespace dnn;
 
 struct detections {
-    vector<int> classIDs;
-    vector<int> x1;
-    vector<int> y1;
-    vector<int> x2;
-    vector<int> y2;
+    std::vector<int> classIDs;
+    std::vector<int> x1;
+    std::vector<int> y1;
+    std::vector<int> x2;
+    std::vector<int> y2;
 };
 
 static float confThreshold, nmsThreshold;
