@@ -11,6 +11,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
@@ -43,7 +44,7 @@ std::string keys =
 
 using namespace cv;
 using namespace dnn;
-
+using namespace std;
 
 int main(int argc, char** argv)
 {
@@ -69,20 +70,20 @@ int main(int argc, char** argv)
     bool swapRB = parser.get<bool>("rgb");
     int inpWidth = parser.get<int>("width");
     int inpHeight = parser.get<int>("height");
-    std::string modelFilePath = parser.get<String>("model");
-    std::string configFilePath = parser.get<String>("config");
+    string modelFilePath = parser.get<String>("model");
+    string configFilePath = parser.get<String>("config");
     CV_Assert(parser.has("model"));
-    std::string modelPath = findFile(parser.get<String>("model"));
-    std::string configPath = findFile(parser.get<String>("config"));
+    string modelPath = findFile(parser.get<String>("model"));
+    string configPath = findFile(parser.get<String>("config"));
     
     // Open file with classes names.
     if (parser.has("classes"))
     {
-        std::string file = parser.get<String>("classes");
-        std::ifstream ifs(file.c_str());
+        string file = parser.get<String>("classes");
+        ifstream ifs(file.c_str());
         if (!ifs.is_open())
             CV_Error(Error::StsError, "File " + file + " not found");
-        std::string line;
+        string line;
         while (std::getline(ifs, line))
         {
             classes.push_back(line);
@@ -96,7 +97,7 @@ int main(int argc, char** argv)
     std::vector<String> outNames = net.getUnconnectedOutLayersNames();
     
     // Create a window
-    static const std::string kWinName = "Deep learning object detection in OpenCV";
+    static const string kWinName = "Deep learning object detection in OpenCV";
     namedWindow(kWinName, WINDOW_NORMAL);
     int initialConf = (int)(confThreshold * 100);
     createTrackbar("Confidence threshold, %", kWinName, &initialConf, 99, callback);
@@ -132,13 +133,13 @@ int main(int argc, char** argv)
             Mat imInfo = (Mat_<float>(1, 3) << inpSize.height, inpSize.width, 1.6f);
             net.setInput(imInfo, "im_info");
         }
-        std::vector<Mat> outs;
+        vector<Mat> outs;
         net.forward(outs, outNames);
 
-        postprocess(frame, outs, net);
+        detections results = postprocess(frame, outs, net);
 
         // Put efficiency information.
-        std::vector<double> layersTimes;
+        vector<double> layersTimes;
         double freq = getTickFrequency() / 1000;
         double t = net.getPerfProfile(layersTimes) / freq;
         std::string label = format("Inference time: %.2f ms", t);

@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
@@ -15,17 +16,18 @@
 
 using namespace cv;
 using namespace dnn;
+using namespace std;
 
 
-void postprocess(Mat& frame, const std::vector<Mat>& outs, Net& net)
+detections postprocess(Mat& frame, const std::vector<Mat>& outs, Net& net)
 {
-    static std::vector<int> outLayers = net.getUnconnectedOutLayers();
-    static std::string outLayerType = net.getLayer(outLayers[0])->type;
+    static vector<int> outLayers = net.getUnconnectedOutLayers();
+    static string outLayerType = net.getLayer(outLayers[0])->type;
     
-    std::vector<int> classIds;
-    std::vector<float> confidences;
-    std::vector<Rect> boxes;
-    std::cout << "Detection Output\n";
+    vector<int> classIds;
+    vector<float> confidences;
+    vector<Rect> boxes;
+    cout << "Detection Output\n";
     // Network produces output blob with a shape 1x1xNx7 where N is a number of
     // detections and an every detection is a vector of values
     // [batchId, classId, confidence, left, top, right, bottom]
@@ -48,15 +50,21 @@ void postprocess(Mat& frame, const std::vector<Mat>& outs, Net& net)
         }
     }
     
-    std::vector<int> indices;
+    vector<int> indices;
+    detections results{};
     NMSBoxes(boxes, confidences, confThreshold, nmsThreshold, indices);
     for (size_t i = 0; i < indices.size(); ++i)
     {
         int idx = indices[i];
         Rect box = boxes[idx];
-        drawPred(classIds[idx], confidences[idx], box.x, box.y,
-                 box.x + box.width, box.y + box.height, frame);
+        results.classIDs.push_back(classIds[idx]);
+        results.x1.push_back(box.x);
+        results.y1.push_back(box.y);
+        results.x2.push_back(box.x+box.width);
+        results.y2.push_back(box.y+box.height);
+        //drawPred(classIds[idx], confidences[idx], box.x, box.y, box.x + box.width, box.y + box.height, frame);
     }
+    return results;
 }
 
 
@@ -64,15 +72,12 @@ void drawPred(int classId, float conf, int left, int top, int right, int bottom,
 {
     rectangle(frame, Point(left, top), Point(right, bottom), Scalar(0, 255, 0));
     
-    std::string label = format("%.2f", conf);
+    string label = format("%.2f", conf);
     if (!classes.empty())
     {
         CV_Assert(classId < (int)classes.size());
         label = classes[classId] + ": " + label;
     }
-
-        std::cout<<"Label: " << label << "\nLeft, top: " << left << ", " << top << "\nRight, bottom: "<< right << ", " << bottom << "\n";
-
     
     int baseLine;
     Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);

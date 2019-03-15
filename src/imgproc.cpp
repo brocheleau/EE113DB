@@ -1,4 +1,4 @@
-#include "imgproc.hpp"
+C#include "imgproc.hpp"
 #include <string>
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -49,7 +49,7 @@ Mat applyBoxBlur(Mat& input, const int MAX_KERNEL_LENGTH, int target_x, int targ
 
 Mat equalizeIntensity(const Mat& input)
 {
-    // guard for images that are not RGB
+    // guard for images that are not RGB   
     if(input.channels() >= 3)
     {
         // declare new Mat in YCrCb coordinates

@@ -14,6 +14,13 @@
 using namespace cv;
 using namespace dnn;
 
+struct detections {
+    vector<int> classIDs;
+    vector<int> x1;
+    vector<int> y1;
+    vector<int> x2;
+    vector<int> y2;
+};
 
 static float confThreshold, nmsThreshold;
 static std::vector<std::string> classes = {
@@ -123,7 +130,7 @@ static std::vector<std::string> classes = {
 /*
 */; 
 
-void postprocess(Mat& frame, const std::vector<Mat>& out, Net& net);
+detections postprocess(Mat& frame, const std::vector<Mat>& out, Net& net);
 
 void drawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame);
 
