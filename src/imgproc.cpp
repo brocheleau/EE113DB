@@ -1,4 +1,4 @@
-C#include "imgproc.hpp"
+#include "imgproc.hpp"
 #include <string>
 #include <iostream>
 #include <opencv2/opencv.hpp>
