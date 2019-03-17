@@ -143,14 +143,22 @@ int main(int argc, char** argv)
         equalizeIntensity(frame);
         
         // check if desired object is in image
+        int lookFor = 2;
+        int appearances = count ( results.classIDs.begin(), results.classIDs.end(), lookFor);
+        detections desiredObjects;
         
-        // run blur excluding detected object
-        
-        // else, run blur excluding all detected objects
-        
-        // possibly: apply linear contrast
-        
-        // possibly: depth mapping
+        // if desired object appears, add to blur exceptions list
+        if (appearances > 0) {
+            // push locations of desired objects to new struct
+            
+            
+            // apply blur
+            // applyBoxBlur(frame, 31, desiredObjects);
+        }
+        // else, use every detected object on the blur exceptions list
+        else {
+            applyBoxBlur(frame, 31, results);
+        }
 
         // Put efficiency information.
         vector<double> layersTimes;
