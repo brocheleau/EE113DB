@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
@@ -15,7 +16,7 @@ using namespace cv;
 using namespace dnn;
 
 struct detections {
-    vector<int> classIDs;
+    vector<string> classIDs;
     vector<int> x1;
     vector<int> y1;
     vector<int> x2;

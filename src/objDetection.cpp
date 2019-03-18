@@ -57,7 +57,7 @@ detections postprocess(Mat& frame, const std::vector<Mat>& outs, Net& net)
     {
         int idx = indices[i];
         Rect box = boxes[idx];
-        results.classIDs.push_back(classIds[idx]);
+        results.classIDs.push_back(classes[classIds[idx]]);
         results.x1.push_back(box.x);
         results.y1.push_back(box.y);
         results.x2.push_back(box.x+box.width);
