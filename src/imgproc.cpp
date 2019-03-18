@@ -40,7 +40,7 @@ void applyBoxBlur(Mat& input, const int MAX_KERNEL_LENGTH, detections locations)
             }
             
             int k = MAX_KERNEL_LENGTH;
-            double minDistance = 1000000000;
+            double minDistance = 1e10;
             double distance = 0;
             
             // compute distance to box/set kernel size
@@ -64,6 +64,7 @@ void applyBoxBlur(Mat& input, const int MAX_KERNEL_LENGTH, detections locations)
                     minDistance = distance;
                 }
             }
+            
             minDistance *= MAX_KERNEL_LENGTH*3;
             k = min(int(minDistance), MAX_KERNEL_LENGTH);
             if (k == 0) { k++; }
@@ -75,16 +76,15 @@ void applyBoxBlur(Mat& input, const int MAX_KERNEL_LENGTH, detections locations)
             for (int c = 0; c < padded_img.channels(); c++) {
                 for (int i = 0; i < k; i++) {
                     for (int j = 0; j < k; j++) {
-                        sum += (input.at<Vec3b>((y + j - anchor), (x + i - anchor))[c] / pow(k,2));
+                        sum += (padded_img.at<Vec3b>((y + j - anchor), (x + i - anchor))[c] / pow(k,2));
                     }
                 }
-                padded_img.at<Vec3b>(y,x)[c] = saturate_cast<uchar>(int(sum));
+                input.at<Vec3b>(y - padding,x - padding)[c] = saturate_cast<uchar>(int(sum));
                 sum = 0;
             }
         }
     }
-    
-    padded_img(Rect(padding, padding, input.cols, input.rows)).copyTo(input);
+    //padded_img(Rect(padding, padding, input.cols, input.rows)).copyTo(input);
 }
 
 void removeException(Mat& input, const int MAX_KERNEL_LENGTH, int x1, int y1, int x2, int y2){
