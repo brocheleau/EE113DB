@@ -27,7 +27,6 @@ detections postprocess(Mat& frame, const std::vector<Mat>& outs, Net& net)
     vector<int> classIds;
     vector<float> confidences;
     vector<Rect> boxes;
-    cout << "Detection Output\n";
     // Network produces output blob with a shape 1x1xNx7 where N is a number of
     // detections and an every detection is a vector of values
     // [batchId, classId, confidence, left, top, right, bottom]

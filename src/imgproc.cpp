@@ -10,90 +10,128 @@ using namespace cv;
 // blur functions
 /////////////////
 
-Mat applyBoxBlur(Mat& input, const int MAX_KERNEL_LENGTH, int target_x, int target_y, int target_length, int target_height){
-
-    Mat dst;
-    Mat temp;
+void applyBoxBlur(Mat& input, const int MAX_KERNEL_LENGTH, detections locations){
+    // input guard
+    if( input.empty() ) {
+        cout << "Image not found.\n" << endl;
+        return;
+    }
+    
+    Mat dst, temp;
     
     temp = input.clone();
     
-    for( int y = target_y + MAX_KERNEL_LENGTH; y < (target_y + target_height - MAX_KERNEL_LENGTH); y++ ) {
-        for( int x = target_x + MAX_KERNEL_LENGTH; x < (target_x + target_length - MAX_KERNEL_LENGTH); x++ ) {
-            for( int c = 0; c < temp.channels(); c++ ) {
-                temp.at<Vec3b>(y,x)[c] = saturate_cast<uchar>(0);
-            }
-        }
+    // black out detected objects
+    for (int i = 0; i < locations.classIDs.size(); i++){
+        removeException(temp, MAX_KERNEL_LENGTH, locations.x1[i], locations.y1[i], locations.x2[i], locations.y2[i]);
     }
     
+    // blur images with blacked out objects
     for( int i = 1 ; i < MAX_KERNEL_LENGTH ; i+=2) {
         blur(temp, dst, Size(i, i), Point(-1, -1));
     }
     
-    for( int y = 0; y < input.rows; y++ ) {
-        for( int x = 0; x < input.cols; x++ ) {
+    // return blacked out boxed to original values
+    for (int i = 0; i < locations.classIDs.size(); i++){
+        addException(dst, input, locations.x1[i], locations.y1[i], locations.x2[i], locations.y2[i]);
+    }
+    
+    input = dst;
+}
+
+void removeException(Mat& input, const int MAX_KERNEL_LENGTH, int x1, int y1, int x2, int y2){
+    // input guard
+    if( input.empty() ) {
+        cout << "Image not found.\n" << endl;
+        return;
+    }
+    
+    // check for out of bounds exceptions
+    
+    
+    
+    // remove exceptions
+    
+    for( int y = y1 + MAX_KERNEL_LENGTH; y < (y2 - MAX_KERNEL_LENGTH); y++ ) {
+        for( int x = x1 + MAX_KERNEL_LENGTH; x < (x2 - MAX_KERNEL_LENGTH); x++ ) {
             for( int c = 0; c < input.channels(); c++ ) {
-                if (y > target_y && x > target_x && y < (target_height + target_y) && x < (target_length + target_x)) {
-                    dst.at<Vec3b>(y,x)[c] = saturate_cast<uchar>( input.at<Vec3b>(y,x)[c] );
-                }
-                dst.at<Vec3b>(y,x)[c] = saturate_cast<uchar>( (input.at<Vec3b>(y,x)[c] + dst.at<Vec3b>(y,x)[c]) / 2);
+                input.at<Vec3b>(y,x)[c] = saturate_cast<uchar>(0);
             }
         }
     }
+}
+
+void addException(Mat& input, Mat& original, int x1, int y1, int x2, int y2){
+    // input guard
+    if( input.empty() ) {
+        cout << "Image not found.\n" << endl;
+        return;
+    }
     
-    return dst;
+    // check for out of bounds exceptions
+    
+    
+    
+    // add exceptions
+    
+    for( int y = y1; y < y2; y++ ) {
+        for( int x = x1; x < x2; x++ ) {
+            for( int c = 0; c < input.channels(); c++ ) {
+                input.at<Vec3b>(y,x)[c] = saturate_cast<uchar>(original.at<Vec3b>(y,x)[c]);
+            }
+        }
+    }
 }
 
 //////////////////
 // color functions
 //////////////////
 
-Mat equalizeIntensity(const Mat& input)
+void equalizeIntensity(Mat& input)
 {
-    // guard for images that are not RGB   
+    // input guard
+    if( input.empty() ) {
+        cout << "Image not found.\n" << endl;
+        return;
+    }
+    
+    // guard for images that are not RGB
     if(input.channels() >= 3)
     {
         // declare new Mat in YCrCb coordinates
-        Mat ycrcb;
+        Mat temp;
         
         // convert input to YCrCb image
-        cvtColor(input, ycrcb, COLOR_BGR2YCrCb);
+        cvtColor(input, temp, COLOR_BGR2YCrCb);
         
         // split YCrCb image's channels
         vector<Mat> channels;
-        split(ycrcb, channels);
+        split(temp, channels);
         
         // equalize histogram of intensity photo
         equalizeHist(channels[0], channels[0]);
         
         // merge channels back into YCrCb image and convert back to RGB
-        Mat result;
-        merge(channels, ycrcb);
-        cvtColor(ycrcb, result, COLOR_YCrCb2BGR);
-        
-        return result;
+        merge(channels, temp);
+        cvtColor(temp, input, COLOR_YCrCb2BGR);
     }
-    
-    return Mat();
 }
 
-Mat linearContrast(Mat& input, double alpha, double beta){
-    
+void linearContrast(Mat& input, double alpha, double beta){
+    // input guard
     if( input.empty() ) {
-        cout << "Could not open or find the image!\n" << endl;
-        return input;
+        cout << "Image not found.\n" << endl;
+        return;
     }
     
-    Mat new_image = Mat::zeros( input.size(), input.type() );
-    
+    // linear contrast adjustment
     for( int y = 0; y < input.rows; y++ ) {
         for( int x = 0; x < input.cols; x++ ) {
             for( int c = 0; c < input.channels(); c++ ) {
-                new_image.at<Vec3b>(y,x)[c] = saturate_cast<uchar>( alpha*input.at<Vec3b>(y,x)[c] + beta );
+                input.at<Vec3b>(y,x)[c] = saturate_cast<uchar>( alpha*input.at<Vec3b>(y,x)[c] + beta );
             }
         }
     }
-    
-    return new_image;
 }
 
 ////////////////////////////////////////////////////
@@ -101,11 +139,23 @@ Mat linearContrast(Mat& input, double alpha, double beta){
 ////////////////////////////////////////////////////
 
 void display1(const Mat& im1, string windowName){
+    // input guard
+    if( im1.empty() ) {
+        cout << "Image not found.\n" << endl;
+        return;
+    }
+    
     // show one image
     imshow(windowName, im1);
 }
 
 void display2(const Mat& im1, const Mat& im2, string windowName) {
+    // input guards
+    if(im1.empty() || im2.empty()) {
+        cout << "Image not found.\n" << endl;
+        return;
+    }
+    
     // acquire image sizes
     Size sz1 = im1.size();
     Size sz2 = im2.size();

@@ -19,6 +19,7 @@
 
 #include "common.hpp"
 #include "objDetection.hpp"
+#include "imgproc.hpp"
 
 std::string keys =
 "{ help  h     | | Print help message. }"
@@ -137,6 +138,27 @@ int main(int argc, char** argv)
         net.forward(outs, outNames);
 
         detections results = postprocess(frame, outs, net);
+        
+        // intensity histogram equalization
+        equalizeIntensity(frame);
+        
+        // check if desired object is in image
+        int lookFor = 2;
+        int appearances = count ( results.classIDs.begin(), results.classIDs.end(), lookFor);
+        detections desiredObjects;
+        
+        // if desired object appears, add to blur exceptions list
+        if (appearances > 0) {
+            // push locations of desired objects to new struct
+            
+            
+            // apply blur
+            // applyBoxBlur(frame, 31, desiredObjects);
+        }
+        // else, use every detected object on the blur exceptions list
+        else {
+            applyBoxBlur(frame, 31, results);
+        }
 
         // Put efficiency information.
         vector<double> layersTimes;
