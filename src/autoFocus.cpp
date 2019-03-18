@@ -114,12 +114,55 @@ int main(int argc, char** argv)
         cap.open(parser.get<String>("input"));
     else
         cap.open(parser.get<int>("device"));
+    
+    if (!cap.isOpened())
+    {
+        cout  << "Could not open the input video." << endl;
+        return -1;
+    }
 
+    
+    Size S = Size((int) cap.get(CAP_PROP_FRAME_WIDTH), (int) cap.get(CAP_PROP_FRAME_HEIGHT));
+    VideoWriter outVideo("demo_video_samples.avi", VideoWriter::fourcc('M','J','P','G'), cap.get(CAP_PROP_FPS)-10, S);
+    
+    cout << "Starting rendering." << endl;
+
+    Mat frame;
+    // collect video frames
+    for (int i = 0; i < 100 ; i++) {
+        cap >> frame;
+        if (frame.empty())
+        {
+            waitKey();
+            break;
+        }
+        waitKey(1);
+        outVideo.write(frame);
+        imshow(kWinName, frame);
+    }
+    
+    cout << "Collection complete." << endl;
+    
+    outVideo.release();
+    cap.release();
+    
+    VideoCapture newCap("demo_video_samples.avi");
+    
+    if (!newCap.isOpened())
+    {
+        cout  << "Could not open the input video." << endl;
+        return -1;
+    }
+    
+    S = Size((int) newCap.get(CAP_PROP_FRAME_WIDTH), (int) newCap.get(CAP_PROP_FRAME_HEIGHT));
+    
+    VideoWriter finalVideo("demo_video_output.avi", VideoWriter::fourcc('M','J','P','G'), newCap.get(CAP_PROP_FPS), S);
+    
     // Process frames.
-    Mat frame, blob;
+    Mat blob;
     while (waitKey(1) < 0)
     {
-        cap >> frame;
+        newCap >> frame;
         if (frame.empty())
         {
             waitKey();
@@ -143,10 +186,10 @@ int main(int argc, char** argv)
         net.forward(outs, outNames);
 
         detections results = postprocess(frame, outs, net);
-        
+
         // intensity histogram equalization
         equalizeIntensity(frame);
-        
+
         // check if desired object is in image
         detections desiredObjects;
         for (unsigned int i = 0; i<results.classIDs.size(); i++){
@@ -158,7 +201,7 @@ int main(int argc, char** argv)
                 desiredObjects.y2.push_back(results.y2[i]);
             }
         }
-        
+
         // if desired object appears, add to blur exceptions list
         if (desiredObjects.classIDs.size() > 0) {
             applyBoxBlur(frame, 7, desiredObjects);
@@ -167,15 +210,19 @@ int main(int argc, char** argv)
         else {
             applyBoxBlur(frame, 7, results);
         }
+        
+        finalVideo.write(frame);
 
-        // Put efficiency information.
-        vector<double> layersTimes;
-        double freq = getTickFrequency() / 1000;
-        double t = net.getPerfProfile(layersTimes) / freq;
-        string label = format("Inference time: %.2f ms", t);
-        putText(frame, label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0));
+//        // Put efficiency information.
+//        vector<double> layersTimes;
+//        double freq = getTickFrequency() / 1000;
+//        double t = net.getPerfProfile(layersTimes) / freq;
+//        string label = format("Inference time: %.2f ms", t);
+//        putText(frame, label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0));
 
-        imshow(kWinName, frame);
     }
+    
+    cout << "Finished rendering." << endl;
+    
     return 0;
 }
