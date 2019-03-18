@@ -21,7 +21,7 @@
 #include "objDetection.hpp"
 #include "imgproc.hpp"
 
-std::string keys =
+string keys =
 "{ help  h     | | Print help message. }"
 "{ @alias      | | An alias name of model to extract preprocessing parameters from models.yml file. }"
 "{ zoo         | models.yml | An optional path to file with preprocessing parameters }"
@@ -31,6 +31,7 @@ std::string keys =
 "{ classes     | | Optional path to a text file with names of classes to label detected objects. }"
 "{ thr         | .5 | Confidence threshold. }"
 "{ nms         | .4 | Non-maximum suppression threshold. }"
+"{ subject s   | | Subject class to focus on. }"
 "{ backend     |  0 | Choose one of computation backends: "
 "0: automatically (by default), "
 "1: Halide language (http://halide-lang.org/), "
@@ -47,12 +48,14 @@ using namespace cv;
 using namespace dnn;
 using namespace std;
 
+string subject = "mouse";
+
 int main(int argc, char** argv)
 {
     CommandLineParser parser(argc, argv, keys);
     
-    const std::string modelName = parser.get<String>("@alias");
-    const std::string zooFile = parser.get<String>("zoo");
+    const string modelName = parser.get<String>("@alias");
+    const string zooFile = parser.get<String>("zoo");
     
     keys += genPreprocArguments(modelName, zooFile);
     
@@ -76,6 +79,8 @@ int main(int argc, char** argv)
     CV_Assert(parser.has("model"));
     string modelPath = findFile(parser.get<String>("model"));
     string configPath = findFile(parser.get<String>("config"));
+    CV_Assert(parser.has("subject"));
+    //string subject = parser.get<string>("subject");
     
     // Open file with classes names.
     if (parser.has("classes"))
@@ -85,7 +90,7 @@ int main(int argc, char** argv)
         if (!ifs.is_open())
             CV_Error(Error::StsError, "File " + file + " not found");
         string line;
-        while (std::getline(ifs, line))
+        while (getline(ifs, line))
         {
             classes.push_back(line);
         }
@@ -95,7 +100,7 @@ int main(int argc, char** argv)
     Net net = readNet(modelPath, configPath, parser.get<String>("framework"));
     net.setPreferableBackend(parser.get<int>("backend"));
     net.setPreferableTarget(parser.get<int>("target"));
-    std::vector<String> outNames = net.getUnconnectedOutLayersNames();
+    vector<String> outNames = net.getUnconnectedOutLayersNames();
     
     // Create a window
     static const string kWinName = "Deep learning object detection in OpenCV";
@@ -143,28 +148,31 @@ int main(int argc, char** argv)
         equalizeIntensity(frame);
         
         // check if desired object is in image
-        int lookFor = 2;
-        int appearances = count ( results.classIDs.begin(), results.classIDs.end(), lookFor);
         detections desiredObjects;
+        for (unsigned int i = 0; i<results.classIDs.size(); i++){
+            if (results.classIDs[i] == subject){
+                desiredObjects.classIDs.push_back(subject);
+                desiredObjects.x1.push_back(results.x1[i]);
+                desiredObjects.y1.push_back(results.y1[i]);
+                desiredObjects.x2.push_back(results.x2[i]);
+                desiredObjects.y2.push_back(results.y2[i]);
+            }
+        }
         
         // if desired object appears, add to blur exceptions list
-        if (appearances > 0) {
-            // push locations of desired objects to new struct
-            
-            
-            // apply blur
-            // applyBoxBlur(frame, 31, desiredObjects);
+        if (desiredObjects.classIDs.size() > 0) {
+            applyBoxBlur(frame, 15, desiredObjects);
         }
         // else, use every detected object on the blur exceptions list
         else {
-            applyBoxBlur(frame, 31, results);
+            applyBoxBlur(frame, 15, results);
         }
 
         // Put efficiency information.
         vector<double> layersTimes;
         double freq = getTickFrequency() / 1000;
         double t = net.getPerfProfile(layersTimes) / freq;
-        std::string label = format("Inference time: %.2f ms", t);
+        string label = format("Inference time: %.2f ms", t);
         putText(frame, label, Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0));
 
         imshow(kWinName, frame);

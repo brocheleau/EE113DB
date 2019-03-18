@@ -21,9 +21,10 @@ Example:
 
 To use the pre-trained model (definitely working):
 ./autoFocus \
---input=sample_images/desk.jpg \
+--input=sample_images/apple_desk.jpg \
 --config=trained_model.pb/ssd_mobilenet_v2_coco/ssd_mobilenet_v2_coco.pbtxt \
---model=trained_model.pb/ssd_mobilenet_v2_coco/frozen_inference_graph.pb
+--model=trained_model.pb/pre-trained/frozen_inference_graph.pb \
+--subject="mouse"
 
 To use my model (not currently working):
 ./autoFocus \

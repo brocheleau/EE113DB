@@ -74,7 +74,10 @@ void drawPred(int classId, float conf, int left, int top, int right, int bottom,
     string label = format("%.2f", conf);
     if (!classes.empty())
     {
-        CV_Assert(classId < (int)classes.size());
+        //CV_Assert(classId < (int)classes.size());
+        if ( classId > (int)classes.size() ){
+            cout << classId << " is greater than num classes " << classes.size() << "\n";
+        }
         label = classes[classId] + ": " + label;
     }
     

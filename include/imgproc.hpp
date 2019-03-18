@@ -7,8 +7,6 @@
 
 #include "objDetection.hpp"
 
-#endif /* imgproc_hpp */
-
 using namespace cv;
 using namespace std;
 
@@ -24,3 +22,5 @@ void linearContrast(Mat& input, double alpha, double beta);
 // display functions (mostly for debugging purposes)
 void display1(const Mat& im1, string windowName);
 void display2(const Mat& im1, const Mat& im2, string windowName);
+
+#endif /* imgproc_hpp */
