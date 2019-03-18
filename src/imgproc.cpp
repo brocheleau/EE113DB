@@ -17,26 +17,74 @@ void applyBoxBlur(Mat& input, const int MAX_KERNEL_LENGTH, detections locations)
         return;
     }
     
-    Mat dst, temp;
+    Mat padded_img;
+    int padding = MAX_KERNEL_LENGTH;
+    padded_img.create(input.rows + 2*padding, input.cols + 2*padding, input.type());
+    padded_img.setTo(Scalar::all(0));
+    input.copyTo(padded_img(Rect(padding, padding, input.cols, input.rows)));
     
-    temp = input.clone();
+    bool insideBox = false;
     
-    // black out detected objects
-    for (int i = 0; i < locations.classIDs.size(); i++){
-        removeException(temp, MAX_KERNEL_LENGTH, locations.x1[i], locations.y1[i], locations.x2[i], locations.y2[i]);
+    for (int y = padding; y < padded_img.rows - padding; y++) {
+        for (int x = padding; x < padded_img.cols - padding; x++) {
+            // check if x,y is within a bounding box
+            for (int i = 0; i < locations.classIDs.size(); i++){
+                if ((x-padding) >= locations.x1[i] && (x-padding) < locations.x2[i] && (y-padding) >= locations.y1[i] && (y-padding) < locations.y2[i]) {
+                    insideBox = true;
+                }
+            }
+            
+            if (insideBox) {
+                insideBox = false;
+                continue;
+            }
+            
+            int k = MAX_KERNEL_LENGTH;
+            double minDistance = 1000000000;
+            double distance = 0;
+            
+            // compute distance to box/set kernel size
+            for (int i = 0; i < locations.classIDs.size(); i++){
+                double xcenter = (locations.x1[i] + locations.x2[i] + 2*padding) / 2;
+                double ycenter = (locations.y1[i] + locations.y2[i] + 2*padding) / 2;
+                
+                double xdistance = (x - xcenter);
+                double ydistance = (y - ycenter);
+                
+                xdistance /= input.cols;
+                ydistance /= input.rows;
+                
+                xdistance = pow(xdistance, 2);
+                ydistance = pow(ydistance, 2);
+                
+                distance = xdistance + ydistance;
+                distance = pow(distance, 0.5);
+                
+                if (distance <= minDistance) {
+                    minDistance = distance;
+                }
+            }
+            minDistance *= MAX_KERNEL_LENGTH*3;
+            k = min(int(minDistance), MAX_KERNEL_LENGTH);
+            if (k == 0) { k++; }
+            
+            // convolve kernel and set pixel value
+            int anchor = k / 2;
+            double sum = 0;
+            
+            for (int c = 0; c < padded_img.channels(); c++) {
+                for (int i = 0; i < k; i++) {
+                    for (int j = 0; j < k; j++) {
+                        sum += (input.at<Vec3b>((y + j - anchor), (x + i - anchor))[c] / pow(k,2));
+                    }
+                }
+                padded_img.at<Vec3b>(y,x)[c] = saturate_cast<uchar>(int(sum));
+                sum = 0;
+            }
+        }
     }
     
-    // blur images with blacked out objects
-    for( int i = 1 ; i < MAX_KERNEL_LENGTH ; i+=2) {
-        blur(temp, dst, Size(i, i), Point(-1, -1));
-    }
-    
-    // return blacked out boxed to original values
-    for (int i = 0; i < locations.classIDs.size(); i++){
-        addException(dst, input, locations.x1[i], locations.y1[i], locations.x2[i], locations.y2[i]);
-    }
-    
-    input = dst;
+    padded_img(Rect(padding, padding, input.cols, input.rows)).copyTo(input);
 }
 
 void removeException(Mat& input, const int MAX_KERNEL_LENGTH, int x1, int y1, int x2, int y2){

@@ -161,11 +161,11 @@ int main(int argc, char** argv)
         
         // if desired object appears, add to blur exceptions list
         if (desiredObjects.classIDs.size() > 0) {
-            applyBoxBlur(frame, 15, desiredObjects);
+            applyBoxBlur(frame, 7, desiredObjects);
         }
         // else, use every detected object on the blur exceptions list
         else {
-            applyBoxBlur(frame, 15, results);
+            applyBoxBlur(frame, 7, results);
         }
 
         // Put efficiency information.
